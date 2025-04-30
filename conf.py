@@ -3,9 +3,9 @@ from pydantic import Field
 from nekro_agent.services.plugin.base import ConfigBase, NekroPlugin
 
 plugin = NekroPlugin(
-    name="通义万相",
+    name="通义万相视频生成",
     module_name="tongyi_wanx",
-    description="通义万相视频生成（异步版）",
+    description="通义万相视频生成（异步非阻塞版）",
     version="0.1.0",
     author="KroMiose",
     url="https://github.com/KroMiose/nekro-plugin-tongyi_wanx",
