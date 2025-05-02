@@ -129,7 +129,8 @@ async def update_task_status(task_id: str, status: TaskStatus, **kwargs):
             f"任务ID: {task_id}\n"
             f"提示词: {task.prompt}\n"
             f"视频已生成完毕!\n"
-            f"视频URL: {task.video_url}"
+            f"视频URL: {task.video_url}\n"
+            "(use `send_msg_file` to send the video)"
         )
 
         try:
