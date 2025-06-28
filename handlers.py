@@ -1,17 +1,16 @@
 import time
 from typing import List
 
+from nekro_agent.adapters.onebot_v11.matchers.command import command_guard, finish_with
+from nekro_agent.api.core import logger
+from nekro_agent.api.schemas import AgentCtx
+from nekro_agent.services.plugin.base import SandboxMethodType
+from nekro_agent.tools.common_util import limited_text_output
 from nonebot import on_command
 from nonebot.adapters import Bot, Message
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
-
-from nekro_agent.api.core import logger
-from nekro_agent.api.schemas import AgentCtx
-from nekro_agent.matchers.command import command_guard, finish_with
-from nekro_agent.services.plugin.base import SandboxMethodType
-from nekro_agent.tools.common_util import limited_text_output
 
 from .conf import config, plugin
 from .models import TaskStatus
@@ -33,7 +32,9 @@ from .service import (
 @plugin.mount_prompt_inject_method(name="tongyi_wanx_prompt_inject")
 async def tongyi_wanx_prompt_inject(_ctx: AgentCtx):
     """注入通义万相插件的上下文信息"""
-    chat_data = await load_chat_data(_ctx.from_chat_key)
+    if not _ctx.chat_key:
+        return ""
+    chat_data = await load_chat_data(_ctx.chat_key)
     global_tasks = await load_global_tasks()
 
     model = config.VIDEO_MODEL
@@ -116,7 +117,9 @@ async def request_video_generation(
         ValueError: If params are invalid (unsupported model/size).
     """
     # 检查是否有正在进行的任务
-    chat_data = await load_chat_data(_ctx.from_chat_key)
+    if not _ctx.chat_key:
+        return ""
+    chat_data = await load_chat_data(_ctx.chat_key)
     global_tasks = await load_global_tasks()
 
     if chat_data.current_task_id:
@@ -149,23 +152,25 @@ async def cancel_current_video_task(_ctx: AgentCtx) -> str:
 
     If there is an active task, set its status to CANCELED and clear the session's current_task_id.
     """
-    chat_data = await load_chat_data(_ctx.from_chat_key)
+    if not _ctx.chat_key:
+        return ""
+    chat_data = await load_chat_data(_ctx.chat_key)
     if not chat_data.current_task_id:
         raise ValueError("No active video task to cancel.")
     global_tasks = await load_global_tasks()
     task = global_tasks.get_task(chat_data.current_task_id)
     if not task:
         chat_data.current_task_id = None
-        await save_chat_data(_ctx.from_chat_key, chat_data)
+        await save_chat_data(_ctx.chat_key, chat_data)
         return "No active video task to cancel."
     if task.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELED]:
         chat_data.current_task_id = None
-        await save_chat_data(_ctx.from_chat_key, chat_data)
+        await save_chat_data(_ctx.chat_key, chat_data)
         raise ValueError(f"Task {task.task_id} is already finished.")
     # Cancel the task
     task.status = TaskStatus.CANCELED
     chat_data.current_task_id = None
-    await save_chat_data(_ctx.from_chat_key, chat_data)
+    await save_chat_data(_ctx.chat_key, chat_data)
     await save_global_tasks(global_tasks)
     return f"Task {task.task_id} has been canceled."
 

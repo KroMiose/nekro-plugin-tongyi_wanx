@@ -1,6 +1,5 @@
-from pydantic import Field
-
 from nekro_agent.services.plugin.base import ConfigBase, NekroPlugin
+from pydantic import Field
 
 plugin = NekroPlugin(
     name="通义万相视频生成",

@@ -3,11 +3,10 @@ import time
 from typing import Dict, List, Optional, Tuple
 
 import httpx
-
 from nekro_agent.api import message
 from nekro_agent.api.core import logger
 from nekro_agent.api.schemas import AgentCtx
-from nekro_agent.services.message.message_service import message_service
+from nekro_agent.services.message_service import message_service
 
 from .conf import config, store
 from .models import (
@@ -61,6 +60,8 @@ async def create_video_task(
     """创建视频生成任务"""
     # 加载全局任务数据
     global_tasks = await load_global_tasks()
+    if not ctx.from_chat_key:
+        raise ValueError("from_chat_key is required")
 
     # 创建新任务
     task = VideoTask.create(task_id, ctx.from_chat_key, prompt, reason, model, size, duration)
